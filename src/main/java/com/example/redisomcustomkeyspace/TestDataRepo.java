@@ -12,5 +12,7 @@ public interface TestDataRepo extends RedisDocumentRepository<TestData, String> 
   Optional<TestData> findByDepartmentAndCountry(String department, String country);
 
   @Query("@subDataSet_country:{$country}")
-  Iterable<TestData> findByCountry(String country);
+  Iterable<TestData> findAllBySubDataSet_Country(String country);
+
+  Iterable<TestData> findAllByNumber(Integer number);
 }

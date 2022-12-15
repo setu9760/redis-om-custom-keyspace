@@ -2,12 +2,27 @@ package com.example.redisomcustomkeyspace;
 
 import com.example.redisomcustomkeyspace.TestData.SubData;
 import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.context.annotation.Profile;
+import org.springframework.data.redis.core.mapping.RedisMappingContext;
 
 @Configuration
 public class Config {
+
+  @Bean
+  @Primary
+  @Profile("custom-keyspace")
+  public RedisMappingContext keyValueMappingContext(
+      @Value(value = "${redis.custom.keyspace.prefix}") String keyspacePrefix) {
+    RedisMappingContext mappingContext = new RedisMappingContext();
+    mappingContext.setFallbackKeySpaceResolver(type -> keyspacePrefix + ":" + type.getSimpleName());
+    return mappingContext;
+  }
 
   @Bean
   CommandLineRunner loadTestData(TestDataRepo repo) {
@@ -20,7 +35,7 @@ public class Config {
           )
       );
 
-      TestData td2 = testData("td2", 45);
+      TestData td2 = testData("td2", 45, "testValue");
       td2.setSubDataSet(
           Set.of(
               subData("sd23", "finance", "mexico"),
@@ -35,7 +50,9 @@ public class Config {
 
       System.out.println(repo.findByDepartmentAndCountry("finance", "uk"));
 
-      System.out.println(repo.findByCountry("uk"));
+      System.out.println(repo.findAllBySubDataSet_Country("mexico"));
+
+      System.out.println(repo.findAllByNumber(12));
     };
   }
 
